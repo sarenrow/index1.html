@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -373,7 +374,7 @@ const sections = [
       {en:'October',it:'Ottobre',pr:'ot-TOH-breh'},
       {en:'November',it:'Novembre',pr:'noh-VEM-breh'},
       {en:'December',it:'Dicembre',pr:'dee-CHEM-breh'},
-      
+    ]},
 {
  id:'irregular_verbs', icon:'🔁', title:'Common irregular verbs',
  phrases:[
@@ -458,8 +459,8 @@ const sections = [
  {en:'Right',it:'Destra',pr:'DES-trah'},
  {en:'Left',it:'Sinistra',pr:'see-NEES-trah'},
  {en:'Straight on',it:'Dritto',pr:'DREET-toh'}
- ]
 
+  
 ];
 
 const tabLabels = {
@@ -468,8 +469,7 @@ const tabLabels = {
   cars:'Cars & track day', feelings:'Feelings', polite:'Polite responses',
   yesno:'Yes / No', questions:'Questions', time:'Time & when', clarifying:'Clarifying',
   compliments:'Compliments', shopping:'Shopping', preferences:'Preferences',
-  greetings:'Greetings', numbers:'Numbers', days:'Days & months', irregular_verbs:'Irregular verbs', regular_verbs:'Regular verbs', useful_words:'Useful words'
-
+  greetings:'Greetings', numbers:'Numbers', days:'Days & months'
 };
 
 let learned = JSON.parse(localStorage.getItem('sarah_italian_v3') || '{}');
@@ -515,39 +515,6 @@ function render(){
     html += `</div>`;
   });
   document.getElementById('content').innerHTML = html;
-}
-
-function searchContent(){
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  let html = '';
-
-  sections.forEach(sec => {
-    sec.phrases.forEach((p, i) => {
-      if (
-        p.en.toLowerCase().includes(q) ||
-        p.it.toLowerCase().includes(q)
-      ) {
-        const star = p.star ? '<span class="star">&#9733;</span>' : '';
-
-        html += `<tr>
-          <td></td>
-          <td><strong>${p.en}</strong>${star}</td>
-          <td class="it-col">${p.it}</td>
-          <td class="pr-col">${p.pr}</td>
-        </tr>`;
-      }
-    });
-  });
-
-  document.getElementById('content').innerHTML =
-    `<table class="phrase-table">
-      <thead>
-        <tr>
-          <th></th><th>English</th><th>Italian</th><th>Pronunciation</th>
-        </tr>
-      </thead>
-      <tbody>${html}</tbody>
-    </table>`;
 }
 
 buildTabs();
