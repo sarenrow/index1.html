@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sarah's Italiano Phrases</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Lato', sans-serif; background: #F2EDE4; color: #2C2C2C; min-height: 100vh; }
+.page-header { text-align: center; padding: 2.5rem 1rem 0.5rem; }
+.page-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 48px); font-weight: 700; color: #2D4A2D; line-height: 1.15; margin-bottom: 0.5rem; }
+.page-title em { font-style: italic; color: #B5843A; font-weight: 400; }
+.page-sub { font-size: 14px; color: #888; font-weight: 300; margin-bottom: 1.75rem; }
+.progress-wrap { text-align: center; margin-bottom: 1.25rem; }
+.progress-text { font-size: 13px; color: #888; margin-bottom: 6px; }
+.progress-track { width: 300px; height: 4px; background: #DDD8CE; border-radius: 4px; margin: 0 auto; overflow: hidden; }
+.progress-fill { height: 4px; background: #2D6A4F; border-radius: 4px; transition: width 0.4s ease; width: 0%; }
+.tabs { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 2rem; padding: 0 1rem; }
+.tab { font-family: 'Lato', sans-serif; font-size: 13px; font-weight: 400; padding: 7px 16px; border-radius: 24px; border: 1.5px solid #C4BFB5; background: transparent; color: #555; cursor: pointer; transition: all 0.15s; }
+.tab:hover { border-color: #2D6A4F; color: #2D6A4F; }
+.tab.active { background: #2D4A2D; color: #fff; border-color: #2D4A2D; }
+.content { max-width: 900px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+.section { margin-bottom: 2.5rem; }
+.section-heading { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 400; font-style: italic; color: #2D4A2D; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+.phrase-table { width: 100%; border-collapse: collapse; background: #FAF8F3; border-radius: 8px; overflow: hidden; }
+.phrase-table thead tr { background: #2D4A2D; color: #fff; }
+.phrase-table th { padding: 11px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-align: left; }
+.phrase-table th:first-child { width: 36px; text-align: center; }
+.phrase-row { cursor: pointer; border-bottom: 1px solid #EDE8DF; transition: background 0.12s; }
+.phrase-row:last-child { border-bottom: none; }
+.phrase-row:hover td { background: #F0EBE0; }
+.phrase-row.learned td { background: #EAF3EE; }
+.phrase-table td { padding: 13px 16px; font-size: 14px; color: #333; vertical-align: middle; }
+.phrase-table td:first-child { text-align: center; width: 36px; padding: 0 8px; }
+.check-circle { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #BDB8AE; font-size: 11px; color: transparent; transition: all 0.15s; }
+.learned .check-circle { background: #2D6A4F; border-color: #2D6A4F; color: #fff; }
+.it-col { font-style: italic; color: #444; }
+.learned .it-col { color: #2D6A4F; }
+.pr-col { font-size: 13px; color: #888; }
+.star { color: #B5843A; font-size: 11px; margin-left: 4px; }
+.note { margin-top: 0.6rem; padding: 10px 14px; background: #FDF3E3; border-left: 3px solid #B5843A; font-size: 12.5px; color: #6B4E17; line-height: 1.6; border-radius: 0 6px 6px 0; }
+.footer { text-align: center; padding: 2rem 1rem; font-size: 12px; color: #AAA; border-top: 1px solid #DDD8CE; margin-top: 1rem; }
+.reset-btn { font-family: 'Lato', sans-serif; font-size: 12px; color: #AAA; background: none; border: none; cursor: pointer; text-decoration: underline; display: block; margin: 8px auto 0; }
+</style>
+</head>
+<body>
+<div class="page-header">
+  <h1 class="page-title">Sarah's <em>Italiano</em> Phrases</h1>
+  <p class="page-sub">Tap a row to mark it as learned &middot; Build your confidence ogni giorno</p>
+  <div class="progress-wrap">
+    <div class="progress-text" id="prog-text">Loading...</div>
+    <div class="progress-track"><div class="progress-fill" id="prog-bar"></div></div>
+    <button class="reset-btn" onclick="resetAll()">Reset progress</button>
+  </div>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
+<div class="footer">Buona fortuna, Sarah! 🇮🇹 Piano piano.</div>
+<script>
+const sections = [
+  { id:'intro', icon:'🍋', title:'Introductions',
+    note:"Your opening script: \"Mi chiamo Sarah. Sono inglese. Vivo a Sheffield, in Inghilterra. Sto imparando l'italiano — piano piano!\" Say it with a smile and they'll love you.",
+    phrases:[
+      {en:'My name is Sarah',it:'Mi chiamo Sarah',pr:'mee kee-AH-moh Sarah',star:true},
+      {en:'I am English',it:'Sono inglese',pr:'SOH-noh in-GLAY-zeh',star:true},
+      {en:'I live in Sheffield, in England',it:'Vivo a Sheffield, in Inghilterra',pr:'VEE-voh ah Sheffield in in-ghil-TER-rah'},
+      {en:'I am starting to learn Italian',it:"Sto imparando l'italiano",pr:'stoh im-pah-RAN-doh lee-tal-YAH-noh',star:true},
+      {en:'I have two sons',it:'Ho due figli',pr:'oh DOO-eh FEEL-yee'},
+      {en:'They are called Elliot and Oscar',it:'Si chiamano Elliot e Oscar',pr:'see kee-AH-mah-noh Elliot eh Oscar'},
+      {en:'They are seven and five years old',it:'Hanno sette e cinque anni',pr:'AN-noh SET-teh eh CHEEN-kweh AN-nee'},
+      {en:'Slowly slowly (taking it step by step)',it:'Piano piano',pr:'pee-AH-noh pee-AH-noh',star:true},
+    ]},
+  { id:'food', icon:'🍷', title:'Food & drink',
+    note:'Top combo: taste something, go wide-eyed, say "È buonissimo!" then look at the cook and ask "Chi ha fatto questo?" — they will be delighted every time.',
+    phrases:[
+      {en:"It's delicious!",it:'È buonissimo!',pr:'eh bwoh-NEES-see-moh',star:true},
+      {en:"It's beautiful / lovely",it:'È bellissimo!',pr:'eh bel-LEES-see-moh'},
+      {en:'What is this?',it:"Cos'è questo?",pr:'koh-ZEH KWES-toh'},
+      {en:'I like it a lot',it:'Mi piace molto',pr:'mee pee-AH-cheh MOL-toh'},
+      {en:"I don't eat meat",it:'Non mangio carne',pr:'non MAN-joh KAR-neh'},
+      {en:'Can I have some more?',it:'Posso averne ancora?',pr:'POS-soh ah-VER-neh an-KOH-rah'},
+      {en:'Cheers! (informal)',it:'Cin cin!',pr:'chin chin',star:true},
+      {en:"Thank you, it's really good",it:'Grazie, è davvero buono',pr:'GRAT-syeh eh dah-VEH-roh BWOH-noh'},
+      {en:"I'm full",it:'Sono piena',pr:'SOH-noh pee-EH-nah'},
+      {en:'Who made this?',it:'Chi ha fatto questo?',pr:'kee ah FAT-toh KWES-toh',star:true},
+      {en:'I came to Italy to finally eat well',it:'Sono venuta in Italia per mangiare finalmente bene',pr:'SOH-noh veh-NOO-tah in ee-TAL-yah per man-JAH-reh fee-nal-MEN-teh BEH-neh',star:true},
+    ]},
+  { id:'solo', icon:'🗺️', title:'Solo & hotel',
+    note:'"Vorrei" is your most versatile word — just add anything after it. "Dov\'è" is the same — learn it once and swap in whatever you need.',
+    phrases:[
+      {en:'Where is...?',it:"Dov'è...?",pr:'doh-VEH',star:true},
+      {en:'Where is the bathroom?',it:"Dov'è il bagno?",pr:'doh-VEH il BAN-yoh',star:true},
+      {en:'Where is the train station?',it:"Dov'è la stazione?",pr:'doh-VEH lah stat-SYOH-neh'},
+      {en:'How much does it cost?',it:'Quanto costa?',pr:'KWAN-toh KOS-tah'},
+      {en:'A table for one, please',it:'Un tavolo per uno, per favore',pr:'oon TAH-voh-loh per OO-noh per fah-VOH-reh'},
+      {en:'Can I have the bill please?',it:'Il conto, per favore',pr:'il KON-toh per fah-VOH-reh',star:true},
+      {en:'Do you speak English?',it:'Parla inglese?',pr:'PAR-lah in-GLAY-zeh'},
+      {en:"I don't understand",it:'Non capisco',pr:'non kah-PEES-koh',star:true},
+      {en:'Can you speak more slowly?',it:'Può parlare più lentamente?',pr:'pwoh par-LAH-reh pyoo len-tah-MEN-teh'},
+      {en:'Can you repeat that?',it:'Può ripetere?',pr:'pwoh ree-PEH-teh-reh'},
+      {en:'I would like...',it:'Vorrei...',pr:'vor-RAY',star:true},
+      {en:'A coffee please',it:'Un caffè, per favore',pr:'oon kaf-FEH per fah-VOH-reh'},
+      {en:'I have a reservation',it:'Ho una prenotazione',pr:'oh oo-nah preh-no-tat-SYOH-neh'},
+      {en:"My room isn't working",it:'La mia camera non funziona',pr:'lah MEE-ah KAH-meh-rah non foon-TSYOH-nah'},
+      {en:'Help!',it:'Aiuto!',pr:'ah-YOO-toh'},
+      {en:'I need a doctor',it:'Ho bisogno di un medico',pr:'oh bee-ZON-yoh dee oon MEH-dee-koh'},
+    ]},
+  { id:'humour', icon:'😄', title:'Humour & banter',
+    note:'Nuclear option: if someone teases you and you have no idea what they said — pause, look them dead in the eye, and say "Sei terribile" with a straight face. Works every time.',
+    phrases:[
+      {en:"I understood nothing, but I agree!",it:"Non ho capito niente, ma sono d'accordo!",pr:'non oh kah-PEE-toh nee-EN-teh mah SOH-noh dak-KOR-doh',star:true},
+      {en:'My Italian is terrible, sorry!',it:'Il mio italiano è terribile, scusa!',pr:'il MEE-oh ee-tal-YAH-noh eh ter-REE-bee-leh SKOO-zah'},
+      {en:"I'm trying my best!",it:'Sto facendo del mio meglio!',pr:'stoh fah-CHEN-doh del MEE-oh MEL-yoh'},
+      {en:'I understood that!',it:'Ho capito quello!',pr:'oh kah-PEE-toh KWEL-loh'},
+      {en:'Very funny! (sarcastic)',it:'Che spiritoso!',pr:'keh spee-ree-TOH-zoh',star:true},
+      {en:"I'm telling my partner what you said!",it:'Lo dico al mio ragazzo!',pr:'loh DEE-koh al MEE-oh rah-GAT-soh'},
+      {en:"You're terrible!",it:'Sei terribile!',pr:'say ter-REE-bee-leh',star:true},
+      {en:'In England we just eat fish and chips',it:'In Inghilterra mangiamo solo fish and chips',pr:'in in-ghil-TER-rah man-JAH-moh SOH-loh fish and chips'},
+      {en:'The weather in England is always terrible',it:'Il tempo in Inghilterra è sempre terribile',pr:'il TEM-poh in in-ghil-TER-rah eh SEM-preh ter-REE-bee-leh'},
+      {en:'I need tea to survive',it:'Ho bisogno di tè per sopravvivere',pr:'oh bee-ZON-yoh dee teh per soh-prahv-VEE-veh-reh'},
+      {en:'I came to Italy to finally eat well',it:'Sono venuta in Italia per mangiare finalmente bene',pr:'SOH-noh veh-NOO-tah in ee-TAL-yah per man-JAH-reh fee-nal-MEN-teh BEH-neh',star:true},
+    ]},
+  { id:'fish', icon:'🐟', title:'Fish & seafood',
+    note:"Branzino and orata are the two you'll see everywhere in that region — know those first. Vongole is worth knowing because spaghetti alle vongole is one of Italy's most beloved pasta dishes.",
+    phrases:[
+      {en:'Fish (general)',it:'Il pesce',pr:'il PEH-sheh'},
+      {en:'Salmon',it:'Il salmone',pr:'il sal-MOH-neh'},
+      {en:'Tuna',it:'Il tonno',pr:'il TON-noh'},
+      {en:'Cod',it:'Il merluzzo',pr:'il mer-LOOT-tsoh'},
+      {en:'Sea bass',it:'Il branzino',pr:'il bran-DZEE-noh',star:true},
+      {en:'Sea bream',it:"L'orata",pr:'loh-RAH-tah',star:true},
+      {en:'Sardines',it:'Le sardine',pr:'leh sar-DEE-neh'},
+      {en:'Anchovies',it:'Le acciughe',pr:'leh ah-CHOO-geh'},
+      {en:'Swordfish',it:'Il pesce spada',pr:'il PEH-sheh SPAH-dah'},
+      {en:'Trout',it:'La trota',pr:'lah TROH-tah'},
+      {en:'Sole',it:'La sogliola',pr:'lah sol-YOH-lah'},
+      {en:'Octopus',it:'Il polpo',pr:'il POL-poh'},
+      {en:'Squid',it:'Il calamaro',pr:'il kah-lah-MAH-roh'},
+      {en:'Prawns / shrimp',it:'I gamberi',pr:'ee GAM-beh-ree'},
+      {en:'Clams',it:'Le vongole',pr:'leh VON-goh-leh',star:true},
+      {en:'Mussels',it:'Le cozze',pr:'leh KOT-tseh'},
+    ]},
+  { id:'reactions', icon:'💬', title:'Reactions & fillers',
+    note:"These are your secret weapon in group conversations — you can be part of every exchange without needing to lead. Davvero? and Che bello! alone will carry you a long way.",
+    phrases:[
+      {en:'Really?',it:'Davvero?',pr:'dah-VEH-roh',star:true},
+      {en:'How lovely!',it:'Che bello!',pr:'keh BEL-loh',star:true},
+      {en:'Exactly!',it:'Esatto!',pr:'eh-ZAT-toh',star:true},
+      {en:'Of course!',it:'Certo!',pr:'CHER-toh'},
+      {en:'How funny!',it:'Che divertente!',pr:'keh dee-ver-TEN-teh'},
+      {en:'What a shame!',it:'Che peccato!',pr:'keh pek-KAH-toh'},
+      {en:'I agree',it:"Sono d'accordo",pr:'SOH-noh dak-KOR-doh'},
+      {en:'Me too!',it:"Anch'io!",pr:'an-KEE-oh'},
+      {en:"I don't know",it:'Non lo so',pr:'non loh SOH'},
+      {en:'Maybe',it:'Forse',pr:'FOR-seh'},
+      {en:'I understand',it:'Capisco',pr:'kah-PEES-koh'},
+      {en:'More or less',it:'Più o meno',pr:'pyoo oh MEH-noh'},
+      {en:"It doesn't matter",it:'Non fa niente',pr:'non fah nee-EN-teh'},
+      {en:'How interesting!',it:'Che interessante!',pr:'keh in-teh-res-SAN-teh'},
+      {en:'Wow! / Goodness!',it:'Mamma mia!',pr:'MAM-mah MEE-ah',star:true},
+    ]},
+  { id:'weather', icon:'☀️', title:'Weather & small talk',
+    note:'"Sono così felice di essere qui" — telling his friends you\'re so happy to be there will genuinely touch them. Say it once, mean it, and it\'ll land beautifully.',
+    phrases:[
+      {en:'What beautiful weather!',it:'Che bel tempo!',pr:'keh bel TEM-poh'},
+      {en:"It's hot",it:'Fa caldo',pr:'fah KAL-doh'},
+      {en:"It's cold",it:'Fa freddo',pr:'fah FRED-doh'},
+      {en:"It's sunny",it:"C'è il sole",pr:'cheh il SOH-leh'},
+      {en:'What a beautiful place!',it:'Che posto bellissimo!',pr:'keh POS-toh bel-LEES-see-moh',star:true},
+      {en:'I love it here',it:'Mi piace molto qui',pr:'mee pee-AH-cheh MOL-toh kwee',star:true},
+      {en:"It's so beautiful",it:'È così bello',pr:'eh koh-ZEE BEL-loh'},
+      {en:"I'm so happy to be here",it:'Sono così felice di essere qui',pr:'SOH-noh koh-ZEE feh-LEE-cheh dee ES-seh-reh kwee',star:true},
+      {en:'Is it always like this?',it:'È sempre così?',pr:'eh SEM-preh koh-ZEE'},
+      {en:'What do you do at the weekend here?',it:'Cosa fate il weekend qui?',pr:'KOH-zah FAH-teh il weekend kwee'},
+      {en:"It's very different from England!",it:"È molto diverso dall'Inghilterra!",pr:'eh MOL-toh dee-VER-soh dal-in-ghil-TER-rah'},
+    ]},
+  { id:'cars', icon:'🏎️', title:'Cars & track day',
+    note:"You don't need to know anything about cars — enthusiasm and reaction phrases will do everything. \"Ho un po' di paura!\" with a grin as someone revs their engine will always get a laugh.",
+    phrases:[
+      {en:'What a beautiful car!',it:'Che bella macchina!',pr:'keh BEL-lah MAK-kee-nah',star:true},
+      {en:'It sounds incredible!',it:'Suona incredibile!',pr:'SWOH-nah in-kreh-DEE-bee-leh',star:true},
+      {en:'That was so fast!',it:'Era così veloce!',pr:'EH-rah koh-ZEE veh-LOH-cheh'},
+      {en:"I'm a little scared!",it:"Ho un po' di paura!",pr:'oh oon poh dee pah-OO-rah',star:true},
+      {en:'That was amazing!',it:'Era fantastico!',pr:'EH-rah fan-TAS-tee-koh'},
+      {en:'I prefer to watch!',it:'Preferisco guardare!',pr:'preh-feh-REES-koh gwar-DAH-reh'},
+      {en:'Are you going again?',it:'Vai di nuovo?',pr:'VAH-ee dee NWOH-voh'},
+      {en:'Be careful!',it:'Stai attento!',pr:'STY ah-TEN-toh'},
+      {en:"You're crazy! (affectionate)",it:'Sei pazzo!',pr:'say PAT-tsoh',star:true},
+      {en:'My heart is racing!',it:'Il mio cuore sta battendo forte!',pr:'il MEE-oh KWOH-reh stah bat-TEN-doh FOR-teh'},
+      {en:'Is that normal?!',it:'È normale?!',pr:'eh nor-MAH-leh'},
+      {en:'I need a drink after that!',it:'Ho bisogno di un drink dopo quello!',pr:'oh bee-ZON-yoh dee oon drink DOH-poh KWEL-loh',star:true},
+    ]},
+  { id:'feelings', icon:'💛', title:'Feelings & states',
+    note:"Remember: Italians use \"ho\" (I have) for hunger, thirst, and temperature — not \"sono\" (I am). So it's \"ho fame\" not \"sono fame\". Feels odd at first but quickly becomes natural.",
+    phrases:[
+      {en:"I'm tired",it:'Sono stanca',pr:'SOH-noh STAN-kah',star:true},
+      {en:"I'm hungry",it:'Ho fame',pr:'oh FAH-meh',star:true},
+      {en:"I'm not hungry",it:'Non ho fame',pr:'non oh FAH-meh'},
+      {en:"I'm thirsty",it:'Ho sete',pr:'oh SEH-teh'},
+      {en:"I'm happy",it:'Sono felice',pr:'SOH-noh feh-LEE-cheh'},
+      {en:"I'm a little nervous",it:"Sono un po' nervosa",pr:'SOH-noh oon poh ner-VOH-zah'},
+      {en:"I'm fine",it:'Sto bene',pr:'stoh BEH-neh',star:true},
+      {en:"I'm not feeling well",it:'Non mi sento bene',pr:'non mee SEN-toh BEH-neh'},
+      {en:"I'm cold",it:'Ho freddo',pr:'oh FRED-doh'},
+      {en:"I'm hot",it:'Ho caldo',pr:'oh KAL-doh'},
+      {en:"I'm excited",it:'Sono emozionata',pr:'SOH-noh eh-mot-syoh-NAH-tah'},
+      {en:"I'm a little overwhelmed",it:"Sono un po' sopraffatta",pr:'SOH-noh oon poh soh-praf-FAT-tah'},
+      {en:'I love it',it:'Mi piace tantissimo',pr:'mee pee-AH-cheh tan-TEES-see-moh'},
+      {en:'I miss my boys',it:'Mi mancano i miei figli',pr:'mee man-KAH-noh ee myeh-ee FEEL-yee'},
+    ]},
+  { id:'polite', icon:'🙏', title:'Polite responses',
+    note:'"Prego" is incredibly versatile — it means you\'re welcome, here you go, and please go ahead all at once. "Buona serata" is the perfect warm farewell at the end of an evening.',
+    phrases:[
+      {en:"You're welcome",it:'Prego',pr:'PREH-goh',star:true},
+      {en:"Don't mention it",it:'Di niente',pr:'dee nee-EN-teh'},
+      {en:'Please',it:'Per favore',pr:'per fah-VOH-reh',star:true},
+      {en:'Excuse me (to get past)',it:'Permesso',pr:'per-MES-soh'},
+      {en:'Excuse me (to get attention)',it:'Scusi',pr:'SKOO-zee'},
+      {en:'Sorry',it:'Scusa',pr:'SKOO-zah'},
+      {en:'No problem',it:'Nessun problema',pr:'nes-SOON proh-BLEH-mah'},
+      {en:'With pleasure',it:'Con piacere',pr:'kon pee-ah-CHEH-reh'},
+      {en:'Good morning',it:'Buongiorno',pr:'bwon-JOR-noh',star:true},
+      {en:'Good evening',it:'Buonasera',pr:'bwoh-nah-SEH-rah'},
+      {en:'Good night',it:'Buonanotte',pr:'bwoh-nah-NOT-teh'},
+      {en:'See you later',it:'A dopo',pr:'ah DOH-poh'},
+      {en:'See you tomorrow',it:'A domani',pr:'ah doh-MAH-nee'},
+      {en:'Have a good evening!',it:'Buona serata!',pr:'BWOH-nah seh-RAH-tah',star:true},
+    ]},
+  { id:'yesno', icon:'👍', title:'Yes, no & basics',
+    note:'"Va bene" is one of the most useful phrases in Italian — it means OK, that\'s fine, all good. You\'ll hear it constantly and it fits almost any situation.',
+    phrases:[
+      {en:'Yes',it:'Sì',pr:'see',star:true},
+      {en:'No',it:'No',pr:'noh',star:true},
+      {en:'Maybe',it:'Forse',pr:'FOR-seh'},
+      {en:'A little',it:"Un po'",pr:'oon poh'},
+      {en:'A lot',it:'Molto',pr:'MOL-toh'},
+      {en:'Not at all',it:'Per niente',pr:'per nee-EN-teh'},
+      {en:'Never mind',it:'Non fa niente',pr:'non fah nee-EN-teh'},
+      {en:"OK / That's fine",it:'Va bene',pr:'vah BEH-neh',star:true},
+      {en:'Not yet',it:'Non ancora',pr:'non an-KOH-rah'},
+      {en:'Of course',it:'Certo',pr:'CHER-toh'},
+    ]},
+  { id:'questions', icon:'❓', title:'Basic questions',
+    note:'"Come?" on its own means "Pardon?" which is incredibly handy. And "Come si dice...?" lets you ask how to say any word on the spot — people love being asked this.',
+    phrases:[
+      {en:'Who?',it:'Chi?',pr:'kee'},
+      {en:'What?',it:'Cosa?',pr:'KOH-zah'},
+      {en:'Where?',it:'Dove?',pr:'DOH-veh',star:true},
+      {en:'When?',it:'Quando?',pr:'KWAN-doh'},
+      {en:'Why?',it:'Perché?',pr:'per-KEH'},
+      {en:'How? / Pardon?',it:'Come?',pr:'KOH-meh',star:true},
+      {en:'How much?',it:'Quanto?',pr:'KWAN-toh'},
+      {en:'Which?',it:'Quale?',pr:'KWAH-leh'},
+    ]},
+  { id:'time', icon:'🕐', title:'Time & when',
+    note:'"Tra poco" (in a little while) and "adesso" (now) are the two you\'ll use most — great for understanding when things are happening around you.',
+    phrases:[
+      {en:'Now',it:'Adesso',pr:'ah-DES-soh',star:true},
+      {en:'Later',it:'Dopo',pr:'DOH-poh'},
+      {en:'Soon',it:'Presto',pr:'PRES-toh'},
+      {en:'Yesterday',it:'Ieri',pr:'ee-EH-ree'},
+      {en:'Today',it:'Oggi',pr:'OD-jee',star:true},
+      {en:'Tomorrow',it:'Domani',pr:'doh-MAH-nee',star:true},
+      {en:'This morning',it:'Stamattina',pr:'stah-mat-TEE-nah'},
+      {en:'This evening',it:'Stasera',pr:'stah-SEH-rah'},
+      {en:'Tonight',it:'Stanotte',pr:'stah-NOT-teh'},
+      {en:'In a little while',it:'Tra poco',pr:'trah POH-koh'},
+      {en:'Already',it:'Già',pr:'jah'},
+      {en:'Always',it:'Sempre',pr:'SEM-preh'},
+      {en:'Never',it:'Mai',pr:'my'},
+    ]},
+  { id:'clarifying', icon:'🔍', title:'Getting help & clarifying',
+    note:'"Come si dice...?" is a brilliant phrase — ask it on the spot whenever you want to know how to say something. People love being asked and it shows you\'re genuinely trying.',
+    phrases:[
+      {en:'How do you say...?',it:'Come si dice...?',pr:'KOH-meh see DEE-cheh',star:true},
+      {en:'What does that mean?',it:'Cosa significa?',pr:'KOH-zah sig-NEE-fee-kah',star:true},
+      {en:'Can you write it down?',it:'Può scriverlo?',pr:'pwoh skree-VER-loh'},
+      {en:'I speak a little Italian',it:"Parlo un po' d'italiano",pr:'PAR-loh oon poh dee-tal-YAH-noh',star:true},
+      {en:"I don't speak Italian well",it:"Non parlo bene l'italiano",pr:'non PAR-loh BEH-neh lee-tal-YAH-noh'},
+      {en:'Is that right?',it:'È giusto?',pr:'eh JOO-stoh'},
+      {en:'What did you say?',it:'Cosa hai detto?',pr:'KOH-zah eye DET-toh'},
+    ]},
+  { id:'compliments', icon:'✨', title:'Compliments',
+    note:'"Mi sto divertendo moltissimo" — I\'m having a wonderful time — said genuinely at some point during the trip will mean everything to his friends. Save it for the right moment.',
+    phrases:[
+      {en:'You look beautiful',it:'Sei bellissima',pr:'say bel-LEES-see-mah'},
+      {en:'What a lovely home!',it:'Che bella casa!',pr:'keh BEL-lah KAH-zah',star:true},
+      {en:'Your family is wonderful',it:'La tua famiglia è meravigliosa',pr:'lah TOO-ah fam-EEL-yah eh meh-rah-veel-YOH-zah'},
+      {en:'This place is stunning',it:'Questo posto è stupendo',pr:'KWES-toh POS-toh eh stoo-PEN-doh'},
+      {en:'You are very kind',it:'Sei molto gentile',pr:'say MOL-toh jen-TEE-leh',star:true},
+      {en:'What a lovely evening!',it:'Che bella serata!',pr:'keh BEL-lah seh-RAH-tah'},
+      {en:"I'm having a wonderful time",it:'Mi sto divertendo moltissimo',pr:'mee stoh dee-ver-TEN-doh mol-TEES-see-moh',star:true},
+    ]},
+  { id:'shopping', icon:'🛍️', title:'Shopping & paying',
+    note:'"Sto solo guardando" said with a smile is all you need when a shop assistant approaches. Simple and very useful when you\'re out on your own.',
+    phrases:[
+      {en:"I'm just looking",it:'Sto solo guardando',pr:'stoh SOH-loh gwar-DAN-doh',star:true},
+      {en:'Do you have...?',it:'Ha...?',pr:'ah'},
+      {en:'How much is this?',it:'Quanto costa questo?',pr:'KWAN-toh KOS-tah KWES-toh',star:true},
+      {en:"That's too expensive",it:'È troppo caro',pr:'eh TROP-poh KAH-roh'},
+      {en:'Can I pay by card?',it:'Posso pagare con la carta?',pr:'POS-soh pah-GAH-reh kon lah KAR-tah'},
+      {en:'Do you have anything cheaper?',it:'Ha qualcosa di meno caro?',pr:'ah kwal-KOH-zah dee MEH-noh KAH-roh'},
+      {en:"I'll take it",it:'Lo prendo',pr:'loh PREN-doh'},
+      {en:'A bag please',it:'Un sacchetto per favore',pr:'oon sak-KET-toh per fah-VOH-reh'},
+    ]},
+  { id:'preferences', icon:'❤️', title:'Expressing preferences',
+    note:'"Adoro" is stronger than "mi piace" — it means I adore it. Use it for food, places, Italy itself. Italians respond very warmly to genuine enthusiasm.',
+    phrases:[
+      {en:'I prefer',it:'Preferisco',pr:'preh-feh-REES-koh'},
+      {en:'I love / I adore',it:'Adoro',pr:'ah-DOH-roh',star:true},
+      {en:'I really like',it:'Mi piace molto',pr:'mee pee-AH-cheh MOL-toh'},
+      {en:"I don't like",it:'Non mi piace',pr:'non mee pee-AH-cheh'},
+      {en:'My favourite is',it:'Il mio preferito è',pr:'il MEE-oh preh-feh-REE-toh eh'},
+      {en:"It's not for me",it:'Non fa per me',pr:'non fah per meh'},
+      {en:"I'd rather...",it:'Preferirei...',pr:'preh-feh-ree-RAY'},
+    ]},
+  { id:'greetings', icon:'👋', title:'Casual greetings & goodbyes',
+    note:'"Alla prossima" — until next time — implies you\'re already looking forward to seeing them again. A small phrase that leaves a big impression.',
+    phrases:[
+      {en:'Hi! / Bye!',it:'Ciao!',pr:'chow',star:true},
+      {en:'See you soon',it:'A presto',pr:'ah PRES-toh',star:true},
+      {en:'See you later',it:'A dopo',pr:'ah DOH-poh'},
+      {en:'See you tomorrow',it:'A domani',pr:'ah doh-MAH-nee'},
+      {en:'Take care',it:'Prenditi cura',pr:'PREN-dee-tee KOO-rah'},
+      {en:'Have a good one!',it:'Buona giornata!',pr:'BWOH-nah jor-NAH-tah'},
+      {en:'It was lovely to meet you',it:'È stato un piacere conoscerti',pr:'eh STAH-toh oon pee-ah-CHEH-reh koh-noh-SHER-tee',star:true},
+      {en:'Until next time',it:'Alla prossima',pr:'AL-lah PROS-see-mah',star:true},
+    ]},
+  { id:'numbers', icon:'🔢', title:'Numbers 1–20',
+    note:'For numbers beyond 20: venti (20) + one = ventuno, + two = ventidue and so on. Trenta = 30, quaranta = 40, cinquanta = 50, cento = 100.',
+    phrases:[
+      {en:'1 — One',it:'Uno',pr:'OO-noh'},
+      {en:'2 — Two',it:'Due',pr:'DOO-eh'},
+      {en:'3 — Three',it:'Tre',pr:'treh'},
+      {en:'4 — Four',it:'Quattro',pr:'KWAT-troh'},
+      {en:'5 — Five',it:'Cinque',pr:'CHEEN-kweh'},
+      {en:'6 — Six',it:'Sei',pr:'say'},
+      {en:'7 — Seven',it:'Sette',pr:'SET-teh'},
+      {en:'8 — Eight',it:'Otto',pr:'OT-toh'},
+      {en:'9 — Nine',it:'Nove',pr:'NOH-veh'},
+      {en:'10 — Ten',it:'Dieci',pr:'dee-EH-chee'},
+      {en:'11 — Eleven',it:'Undici',pr:'OON-dee-chee'},
+      {en:'12 — Twelve',it:'Dodici',pr:'DOH-dee-chee'},
+      {en:'13 — Thirteen',it:'Tredici',pr:'TREH-dee-chee'},
+      {en:'14 — Fourteen',it:'Quattordici',pr:'kwat-TOR-dee-chee'},
+      {en:'15 — Fifteen',it:'Quindici',pr:'KWEEN-dee-chee'},
+      {en:'16 — Sixteen',it:'Sedici',pr:'SEH-dee-chee'},
+      {en:'17 — Seventeen',it:'Diciassette',pr:'dee-chas-SET-teh'},
+      {en:'18 — Eighteen',it:'Diciotto',pr:'dee-CHOT-toh'},
+      {en:'19 — Nineteen',it:'Diciannove',pr:'dee-chan-NOH-veh'},
+      {en:'20 — Twenty',it:'Venti',pr:'VEN-tee'},
+    ]},
+  { id:'days', icon:'📅', title:'Days & months',
+    note:"Italian days and months are never capitalised — it's lunedì not Lunedì, gennaio not Gennaio. A small detail but it shows you've paid attention.",
+    phrases:[
+      {en:'Monday',it:'Lunedì',pr:'loo-neh-DEE'},
+      {en:'Tuesday',it:'Martedì',pr:'mar-teh-DEE'},
+      {en:'Wednesday',it:'Mercoledì',pr:'mer-koh-leh-DEE'},
+      {en:'Thursday',it:'Giovedì',pr:'joh-veh-DEE'},
+      {en:'Friday',it:'Venerdì',pr:'veh-ner-DEE'},
+      {en:'Saturday',it:'Sabato',pr:'SAH-bah-toh'},
+      {en:'Sunday',it:'Domenica',pr:'doh-MEH-nee-kah'},
+      {en:'January',it:'Gennaio',pr:'jen-NAH-yoh'},
+      {en:'February',it:'Febbraio',pr:'feb-BRY-oh'},
+      {en:'March',it:'Marzo',pr:'MAR-tsoh'},
+      {en:'April',it:'Aprile',pr:'ah-PREE-leh'},
+      {en:'May',it:'Maggio',pr:'MAD-joh'},
+      {en:'June',it:'Giugno',pr:'JOO-nyoh'},
+      {en:'July',it:'Luglio',pr:'LOOL-yoh'},
+      {en:'August',it:'Agosto',pr:'ah-GOS-toh'},
+      {en:'September',it:'Settembre',pr:'set-TEM-breh'},
+      {en:'October',it:'Ottobre',pr:'ot-TOH-breh'},
+      {en:'November',it:'Novembre',pr:'noh-VEM-breh'},
+      {en:'December',it:'Dicembre',pr:'dee-CHEM-breh'},
+    ]},
+
+{
+ id:'irregular_verbs', icon:'🔁', title:'Common irregular verbs',
+ phrases:[
+ {en:'To be', it:'Essere — sono, sei, è, siamo, siete, sono', pr:'SOH-noh, say, eh, see-AH-moh, see-EH-teh, SOH-noh'},
+ {en:'To have', it:'Avere — ho, hai, ha, abbiamo, avete, hanno', pr:'oh, eye, ah, ab-bee-AH-moh, ah-VEH-teh, AN-noh'},
+ {en:'To go', it:'Andare — vado, vai, va, andiamo, andate, vanno', pr:'VAH-doh, vye, vah, an-dee-AH-moh, an-DAH-teh, VAN-noh'},
+ {en:'To come', it:'Venire — vengo, vieni, viene, veniamo, venite, vengono', pr:'VEN-goh, vee-EH-nee, vee-EH-neh, veh-nee-AH-moh, veh-NEE-teh, VEN-goh-noh'},
+ {en:'To do / make', it:'Fare — faccio, fai, fa, facciamo, fate, fanno', pr:'FAT-choh, fye, fah, fat-CHAH-moh, FAH-teh, FAN-noh'},
+ {en:'To say / tell', it:'Dire — dico, dici, dice, diciamo, dite, dicono', pr:'DEE-koh, DEE-chee, DEE-cheh, dee-CHAH-moh, DEE-teh, DEE-koh-noh'},
+ {en:'To know (person)', it:'Conoscere — conosco, conosci, conosce, conosciamo, conoscete, conoscono', pr:'koh-NOS-koh, koh-NOH-shee, koh-NOH-sheh, koh-noh-SHAH-moh, koh-noh-SHEH-teh, koh-NOH-skoh-noh'},
+ {en:'To know (fact)', it:'Sapere — so, sai, sa, sappiamo, sapete, sanno', pr:'soh, sye, sah, sap-pee-AH-moh, sah-PEH-teh, SAN-noh'},
+ {en:'To want', it:'Volere — voglio, vuoi, vuole, vogliamo, volete, vogliono', pr:'VOL-yoh, vwoy, vwoh-leh, vol-YAH-moh, voh-LEH-teh, VOL-yoh-noh'},
+ {en:'Can / to be able', it:'Potere — posso, puoi, può, possiamo, potete, possono', pr:'POS-soh, pwoy, pwoh, pos-see-AH-moh, poh-TEH-teh, POS-soh-noh'},
+ {en:'Must / have to', it:'Dovere — devo, devi, deve, dobbiamo, dovete, devono', pr:'DEH-voh, DEH-vee, DEH-veh, dob-bee-AH-moh, doh-VEH-teh, DEH-voh-noh'},
+ {en:'To give', it:'Dare — do, dai, dà, diamo, date, danno', pr:'doh, dye, dah, dee-AH-moh, DAH-teh, DAN-noh'},
+ {en:'To stay', it:'Stare — sto, stai, sta, stiamo, state, stanno', pr:'stoh, stye, stah, stee-AH-moh, STAH-teh, STAN-noh'},
+ {en:'To put', it:'Mettere — metto, metti, mette, mettiamo, mettete, mettono', pr:'MET-toh, MET-tee, MET-teh, met-TYAH-moh, met-TEH-teh, MET-toh-noh'},
+ {en:'To go out', it:'Uscire — esco, esci, esce, usciamo, uscite, escono', pr:'ES-koh, EH-shee, EH-sheh, oo-SHAH-moh, oo-SHEE-teh, ES-koh-noh'}
+ ]
+},
+
+{
+ id:'regular_verbs', icon:'📘', title:'Common regular verbs',
+ phrases:[
+ {en:'To eat',it:'Mangiare',pr:'man-JAH-reh'},
+ {en:'To drink',it:'Bere',pr:'BEH-reh'},
+ {en:'To speak',it:'Parlare',pr:'par-LAH-reh'},
+ {en:'To listen',it:'Ascoltare',pr:'as-kol-TAH-reh'},
+ {en:'To understand',it:'Capire',pr:'kah-PEE-reh'},
+ {en:'To arrive',it:'Arrivare',pr:'ar-ree-VAH-reh'},
+ {en:'To leave',it:'Partire',pr:'par-TEE-reh'},
+ {en:'To buy',it:'Comprare',pr:'kom-PRAH-reh'},
+ {en:'To pay',it:'Pagare',pr:'pah-GAH-reh'},
+ {en:'To walk',it:'Camminare',pr:'kam-mee-NAH-reh'},
+ {en:'To wait',it:'Aspettare',pr:'as-pet-TAH-reh'},
+ {en:'To help',it:'Aiutare',pr:'ah-yoo-TAH-reh'},
+ {en:'To look for',it:'Cercare',pr:'cher-KAH-reh'},
+ {en:'To open',it:'Aprire',pr:'ah-PREE-reh'},
+ {en:'To close',it:'Chiudere',pr:'kyoo-DEH-reh'},
+ {en:'To call',it:'Chiamare',pr:'kyah-MAH-reh'},
+ {en:'To like',it:'Piacere',pr:'pyah-CHEH-reh'},
+ {en:'To live',it:'Vivere',pr:'VEE-veh-reh'},
+ {en:'To work',it:'Lavorare',pr:'lah-voh-RAH-reh'},
+ {en:'To sleep',it:'Dormire',pr:'dor-MEE-reh'}
+ ]
+},
+
+{
+ id:'useful_words', icon:'🧠', title:'Common useful words',
+ phrases:[
+ {en:'And',it:'E',pr:'eh'},
+ {en:'But',it:'Ma',pr:'mah'},
+ {en:'Or',it:'O',pr:'oh'},
+ {en:'Because',it:'Perché',pr:'per-KEH'},
+ {en:'With',it:'Con',pr:'kon'},
+ {en:'Without',it:'Senza',pr:'SEN-tsah'},
+ {en:'Before',it:'Prima',pr:'PREE-mah'},
+ {en:'After',it:'Dopo',pr:'DOH-poh'},
+ {en:'Here',it:'Qui',pr:'kwee'},
+ {en:'There',it:'Là',pr:'lah'},
+ {en:'This',it:'Questo',pr:'KWES-toh'},
+ {en:'That',it:'Quello',pr:'KWEL-loh'},
+ {en:'Very',it:'Molto',pr:'MOL-toh'},
+ {en:'Too much',it:'Troppo',pr:'TROP-poh'},
+ {en:'Enough',it:'Abbastanza',pr:'ab-bas-TAN-tsah'},
+ {en:'Together',it:'Insieme',pr:'in-SYEH-meh'},
+ {en:'Again',it:'Di nuovo',pr:'dee NWOH-voh'},
+ {en:'Only',it:'Solo',pr:'SOH-loh'},
+ {en:'Also',it:'Anche',pr:'AN-keh'},
+ {en:'Almost',it:'Quasi',pr:'KWAH-zee'},
+ {en:'Everything',it:'Tutto',pr:'TOOT-toh'},
+ {en:'Nothing',it:'Niente',pr:'nee-EN-teh'},
+ {en:'Everyone',it:'Tutti',pr:'TOOT-tee'},
+ {en:'Beautiful',it:'Bello / Bella',pr:'BEL-loh / BEL-lah'},
+ {en:'Good',it:'Buono / Buona',pr:'BWOH-noh / BWOH-nah'},
+ {en:'Big',it:'Grande',pr:'GRAN-deh'},
+ {en:'Small',it:'Piccolo / Piccola',pr:'PEE-koh-loh'},
+ {en:'Near',it:'Vicino',pr:'vee-CHEE-noh'},
+ {en:'Far',it:'Lontano',pr:'lon-TAH-noh'},
+ {en:'Fast',it:'Veloce',pr:'veh-LOH-cheh'},
+ {en:'Slow',it:'Lento',pr:'LEN-toh'},
+ {en:'Right',it:'Destra',pr:'DES-trah'},
+ {en:'Left',it:'Sinistra',pr:'see-NEES-trah'},
+ {en:'Straight on',it:'Dritto',pr:'DREET-toh'}
+ ]
+}
+];
+<div class="search-container">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Search English or Italian..." 
+    onkeyup="filterContent()"
+  />
+</div>
+
+const tabLabels = {
+  all:'All phrases', intro:'Introductions', food:'Food & drink', solo:'Solo & hotel',
+  humour:'Humour', fish:'Fish & seafood', reactions:'Reactions', weather:'Weather',
+  cars:'Cars & track day', feelings:'Feelings', polite:'Polite responses',
+  yesno:'Yes / No', questions:'Questions', time:'Time & when', clarifying:'Clarifying',
+  compliments:'Compliments', shopping:'Shopping', preferences:'Preferences',
+  greetings:'Greetings', numbers:'Numbers', days:'Days & months', irregular_verbs:'Irregular verbs',
+regular_verbs:'Regular verbs',
+useful_words:'Useful words'
+
+};
+
+let learned = JSON.parse(localStorage.getItem('sarah_italian_v3') || '{}');
+let filter = 'all';
+const total = sections.reduce((s,sec) => s + sec.phrases.length, 0);
+
+function save(){ localStorage.setItem('sarah_italian_v3', JSON.stringify(learned)); }
+function toggle(key){ learned[key] = !learned[key]; save(); render(); }
+function resetAll(){ if(confirm('Reset all your progress?')){ learned={}; save(); render(); } }
+
+function setFilter(btn, cat){
+  filter = cat;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function buildTabs(){
+  const wrap = document.getElementById('tabs');
+  const keys = ['all', ...sections.map(s => s.id)];
+  wrap.innerHTML = keys.map(k =>
+    `<button class="tab${k==='all'?' active':''}" onclick="setFilter(this,'${k}')">${tabLabels[k]}</button>`
+  ).join('');
+}
+
+function render(){
+  const lc = Object.values(learned).filter(Boolean).length;
+  const pct = Math.round(lc / total * 100);
+  document.getElementById('prog-text').textContent = lc + ' of ' + total + ' phrases learned';
+  document.getElementById('prog-bar').style.width = pct + '%';
+  let html = '';
+  sections.forEach(sec => {
+    if(filter !== 'all' && filter !== sec.id) return;
+    html += `<div class="section"><div class="section-heading"><span>${sec.icon}</span> ${sec.title}</div><table class="phrase-table"><thead><tr><th>&#10003;</th><th>English</th><th>Italian</th><th>Pronunciation</th></tr></thead><tbody>`;
+    sec.phrases.forEach((p, i) => {
+      const key = sec.id + '_' + i;
+      const ok = !!learned[key];
+      const star = p.star ? '<span class="star">&#9733;</span>' : '';
+      html += `<tr class="phrase-row${ok?' learned':''}" onclick="toggle('${key}')"><td><span class="check-circle">${ok?'&#10003;':''}</span></td><td><strong>${p.en}</strong>${star}</td><td class="it-col">${p.it}</td><td class="pr-col">${p.pr}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    if(sec.note) html += `<div class="note">${sec.note}</div>`;
+    html += `</div>`;
+  });
+  document.getElementById('content').innerHTML = html;
+}
+
+buildTabs();
+render();
+</script>
+</body>
+</html>
